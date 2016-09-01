@@ -275,7 +275,8 @@ parse = function(table, hypothesis, errorHandler, configuration){
         f = f + 1
        }
        if(all(valid) && all(table[,i]%%1==0,na.rm=T) && all(table[,i] <= .Machine$integer.max,na.rm=T)){
-         zero_start = sapply(text,function(x){substr(x,1,1) == "0" & sum(grep("[1-9]",x))>0})
+         zero_start = grepl("^0.*[0-9]", text)
+         # sapply(text,function(x){substr(x,1,1) == "0" & sum(grep("[1-9]",x))>0})
          if(any(zero_start)){
            valid[zero_start] = FALSE
          }else{

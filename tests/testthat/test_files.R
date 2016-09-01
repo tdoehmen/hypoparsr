@@ -23,6 +23,5 @@ test_that("it parses our ugly collection", {
 	   print(dist)
 	   dist
 	})
-	
 })
 
