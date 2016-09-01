@@ -1,0 +1,8 @@
+export(parse_file)
+
+# hack to make readr use seen by R CMD check
+importFrom(readr, locale)
+
+S3method(print,hypoparser_result)
+S3method(as.data.frame,hypoparser_result)
+
