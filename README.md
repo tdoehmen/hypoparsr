@@ -8,5 +8,5 @@
 * the latest development version from github with
 
     ```R
-    devtools::install_github("tdhoehmen/hypoparsr")
+    devtools::install_github("tdoehmen/hypoparsr")
     ```
