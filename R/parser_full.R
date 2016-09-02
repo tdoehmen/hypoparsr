@@ -164,6 +164,6 @@ print.hypoparser_result = function(x, ...) {
 as.data.frame.hypoparser_result = function(x, row.names, optional, rank=1, ...) {
 	stopifnot(length(rank) == 1 && rank > 0 && rank <= length(x$ranking))
 	df=x$result[x$ranking][[rank]]$table
-	repair_names(x)
+	tibble::repair_names(x)
 }
 
