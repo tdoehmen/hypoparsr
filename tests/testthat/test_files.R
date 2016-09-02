@@ -24,6 +24,6 @@ test_that("it parses our ugly collection", {
 	   print(dist)
 	   dist
 	})
-	expect_true(sum(as.integer(unlist(dists)), na.rm=T) <= 682378)
+	expect_true(median(as.integer(unlist(dists)), na.rm=T) <= 10)
 })
 
