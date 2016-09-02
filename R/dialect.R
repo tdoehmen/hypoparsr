@@ -42,7 +42,7 @@ get_desc = function(hypothesis){
 }
 
 replace_with_empty_strings = function(table){
-  #colnames(table) = character(ncol(table))
+  colnames(table) = character(ncol(table))
   table[is.na(table)] = ""
   for(i in seq_along(table)){
     table[,i] = enc2native(unlist(table[,i]))
