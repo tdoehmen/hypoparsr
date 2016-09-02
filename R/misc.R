@@ -41,7 +41,6 @@ get_data_types = function(table){
   }
   colnames(table_types) = header_types
   
-  table_types = dplyr::tbl_df(table_types)
   return(table_types)
 }
 

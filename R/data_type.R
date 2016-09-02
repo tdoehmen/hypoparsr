@@ -9,7 +9,7 @@ time_patterns=list(c("%H:%M:%S"),c("%H:%M"))
 na_value_qualifier=c("NULL","null","Null","NA","na","N/A","n/a","NaN","nan","N/A","#NA","1\\.#IND","1\\.#QNAN","-1\\.#IND","-1\\.#IND","-NaN","-nan","-","!","\\s*")
 
 detect = function(table,configuration){
-  if(class(table)[1]!="tbl_df") return(stop(paste("Can not handle data type:",class(table)[1])))
+  if(class(table)[1]!="data.frame") return(stop(paste("Can not handle data type:",class(table)[1])))
   
   table_types = get_data_types(table)
   
@@ -17,13 +17,13 @@ detect = function(table,configuration){
   data_types = list()
   for(i in seq_along(table_types)){
     #(the 100% method)
-    if(any(table_types[,i]==types$numeric) && all(table_types[,i]==types$numeric | table_types[,i]==types$empty | table_types[,i]==types$punctuation)){
+    if(any(table_types[,i,drop=F]==types$numeric) && all(table_types[,i,drop=F]==types$numeric | table_types[,i,drop=F]==types$empty | table_types[,i,drop=F]==types$punctuation)){
       data_types[[i]] = list(type=types$numeric,formats=list())
-    }else if(any(table_types[,i]==types$logical) && all(table_types[,i]==types$logical | table_types[,i]==types$empty | table_types[,i]==types$punctuation)){
+    }else if(any(table_types[,i,drop=F]==types$logical) && all(table_types[,i,drop=F]==types$logical | table_types[,i,drop=F]==types$empty | table_types[,i,drop=F]==types$punctuation)){
       data_types[[i]] = list(type=types$logical,formats=list())
-    }else if(any(table_types[,i]==types$date) && all(table_types[,i]==types$date | table_types[,i]==types$empty | table_types[,i]==types$punctuation)){
+    }else if(any(table_types[,i,drop=F]==types$date) && all(table_types[,i,drop=F]==types$date | table_types[,i,drop=F]==types$empty | table_types[,i,drop=F]==types$punctuation)){
       data_types[[i]] = list(type=types$date,formats=list())
-    }else if(any(table_types[,i]==types$time) && all(table_types[,i]==types$time | table_types[,i]==types$empty | table_types[,i]==types$punctuation)){
+    }else if(any(table_types[,i,drop=F]==types$time) && all(table_types[,i,drop=F]==types$time | table_types[,i,drop=F]==types$empty | table_types[,i,drop=F]==types$punctuation)){
       data_types[[i]] = list(type=types$time,formats=list())
     }else{
       data_types[[i]] = list(type=types$text,formats=list())
@@ -120,8 +120,8 @@ detect = function(table,configuration){
      data_types[[i]]$type==types$date ||
      data_types[[i]]$type==types$time){
         for(s in seq_along(na_value_qualifier)){
-          empty = which(table_types[,i]==types$empty | table_types[,i]==types$punctuation)
-          matches = grepl(paste0("^\\s*",na_value_qualifier[s],"\\s*$"),unlist(table[empty,i]),perl=T)
+          empty = which(table_types[,i,drop=F]==types$empty | table_types[,i,drop=F]==types$punctuation)
+          matches = grepl(paste0("^\\s*",na_value_qualifier[s],"\\s*$"),unlist(table[empty,i,drop=F]),perl=T)
           votes[s] = votes[s] + sum(matches)
         }
      }
@@ -163,7 +163,7 @@ parse = function(table, hypothesis, errorHandler, configuration){
     formats = hypothesis$data_types[[i]]$formats
     
     #trim whitespace, trim quotes, trim whitespace again
-    text = sapply(table[,i],trimws)
+    text = sapply(table[,i,drop=F],trimws)
     text = gsub("(^[\"'])|([\"']$)","",text)
     text = sapply(text,trimws)
     valid = logical(length(text))
@@ -274,13 +274,13 @@ parse = function(table, hypothesis, errorHandler, configuration){
         #check next format
         f = f + 1
        }
-       if(all(valid) && all(table[,i]%%1==0,na.rm=T) && all(table[,i] <= .Machine$integer.max,na.rm=T)){
+       if(all(valid) && all(table[,i,drop=F]%%1==0,na.rm=T) && all(table[,i,drop=F] <= .Machine$integer.max,na.rm=T)){
          zero_start = grepl("^0.*[0-9]", text)
          # sapply(text,function(x){substr(x,1,1) == "0" & sum(grep("[1-9]",x))>0})
          if(any(zero_start)){
            valid[zero_start] = FALSE
          }else{
-           table[,i] = as.integer(unlist(table[,i]))
+           table[,i] = as.integer(unlist(table[,i,drop=F]))
          }
        }
     }else if(type==types$logical){
@@ -299,7 +299,7 @@ parse = function(table, hypothesis, errorHandler, configuration){
           next
         }
         #parse
-        table[relevant,i][matched,] = ifelse(text[relevant][matched]==true_qualifier,TRUE,FALSE)
+        table[relevant,i,drop=F][matched,] = ifelse(text[relevant][matched]==true_qualifier,TRUE,FALSE)
         #check for nulls
         valid[relevant] = valid[relevant] | matched
         
@@ -316,7 +316,7 @@ parse = function(table, hypothesis, errorHandler, configuration){
         for(j in which(relevant)){
           parsed = tryCatch({
             table[j,i] = as.Date(text[j], date_pattern)
-            if(as.numeric(format(table[j,i],'%Y'))<100){
+            if(as.numeric(format(table[j,i,drop=F],'%Y'))<100){
               table[j,i] = as.Date(text[j], sub("Y","y",date_pattern))
             }
           },error=function(e){
@@ -325,7 +325,7 @@ parse = function(table, hypothesis, errorHandler, configuration){
         }
         
         #check for nulls
-        valid[relevant] = valid[relevant] | !is.na(table[relevant,i])
+        valid[relevant] = valid[relevant] | !is.na(table[relevant,i,drop=F])
         
         #check next format
         f = f + 1
@@ -345,7 +345,7 @@ parse = function(table, hypothesis, errorHandler, configuration){
         table[relevant,i] = parsed
         
         #check for nulls
-        valid[relevant] = valid[relevant] | !is.na(table[,i][relevant])
+        valid[relevant] = valid[relevant] | !is.na(table[,i,drop=F][relevant])
         
         #check next format
         f = f + 1
@@ -363,8 +363,8 @@ parse = function(table, hypothesis, errorHandler, configuration){
       result$edits = result$edits + sum(!valid)
     }
     
-    if(class(unlist(table[,i])) == "character"){
-      table[is.na(unlist(table[,i])),i]=""
+    if(class(unlist(table[,i,drop=F])) == "character"){
+      table[is.na(unlist(table[,i,drop=F])),i]=""
     }
     
     unique_units =  unique(result$units[,i])

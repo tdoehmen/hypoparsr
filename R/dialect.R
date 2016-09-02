@@ -68,12 +68,14 @@ parse = function(text, hypothesis, errorHandler, configuration){
       dim_check = suppressWarnings(readr::read_delim(text,delim=hypothesis$delim,quote=hypothesis$quote,col_names=F,escape_double=escape_double,escape_backslash=escape_backslash,n_max=10))
       result$intermediate = readr::read_delim(text,delim=hypothesis$delim,quote=hypothesis$quote,col_names=F,escape_double=escape_double,escape_backslash=escape_backslash,col_types=paste(rep("c",ncol(dim_check)),collapse=""))
       result$intermediate = replace_with_empty_strings(result$intermediate)
+      result$intermediate = data.frame(result$intermediate)
       result$cells = nrow(result$intermediate) * ncol(result$intermediate)
       result
     },warning=function(w){
       result = list()
       result$intermediate = suppressWarnings(readr::read_delim(text,delim=hypothesis$delim,quote=hypothesis$quote,col_names=F,escape_double=escape_double,escape_backslash=escape_backslash,col_types=paste(rep("c",ncol(dim_check)),collapse="")))
       result$intermediate = replace_with_empty_strings(result$intermediate)
+      result$intermediate = data.frame(result$intermediate)
       result$cells = nrow(result$intermediate) * ncol(result$intermediate)
       result$warning = w$message
       result

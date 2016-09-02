@@ -2,10 +2,10 @@ row_function_type = list(header="header",spanning_header="spanning_header",data=
 
 empty_vote = function(i,table_types){
   votes = 0
-  if(all(table_types[i,]==types$empty | table_types[i,]==types$punctuation)){
+  if(all(table_types[i,,drop=F]==types$empty | table_types[i,,drop=F]==types$punctuation)){
     votes = votes + 1
   }
-  if(all(table_types[i,]==types$empty)){
+  if(all(table_types[i,,drop=F]==types$empty)){
     votes = votes + 1
   }
   return(votes/2)
@@ -13,13 +13,13 @@ empty_vote = function(i,table_types){
 
 aggregate_vote = function(i,table_types){
   votes = 0
-  if(any(table_types[i,]==types$total)){
+  if(any(table_types[i,,drop=F]==types$total)){
     votes = votes + 1
   }
-  if(table_types[i,1]==types$total){
+  if(table_types[i,1,drop=F]==types$total){
     votes = votes + 1
   }
-  if(all(table_types[i,]==types$total | table_types[i,]==types$empty |  table_types[i,]==types$numeric)){
+  if(all(table_types[i,,drop=F]==types$total | table_types[i,,drop=F]==types$empty |  table_types[i,,drop=F]==types$numeric)){
     votes = votes + 1
   }
   return(votes/3)
@@ -29,27 +29,27 @@ header_vote = function(i,table_types){
   #TODO:check 30 first non-empty rows
   max_rows=min(30,(nrow(table_types)))
   if((i+1)<max_rows){
-    sum(apply(table_types[(i+1):max_rows,],1,function(x){sum(table_types[i,]!=x & table_types[i,]!=types$empty & x!=types$empty)}))/length((i+1):max_rows)/ncol(table_types)
+    sum(apply(table_types[(i+1):max_rows,,drop=F],1,function(x){sum(table_types[i,,drop=F]!=x & table_types[i,,drop=F]!=types$empty & x!=types$empty)}))/length((i+1):max_rows)/ncol(table_types)
   }else{
     0
   }
 }
 
 metadata_vote = function(i,table_types){
-  if(any(table_types[i,]!=types$empty)){
-    sum(table_types[i,]==types$empty)/ncol(table_types)
+  if(any(table_types[i,,drop=F]!=types$empty)){
+    sum(table_types[i,,drop=F]==types$empty)/ncol(table_types)
   }else{
     0
   }
 }
 
 data_vote = function(i,table_types){
-  sum(table_types[i,]==types$id |
-        table_types[i,]==types$numeric |
-        table_types[i,]==types$date |
-        table_types[i,]==types$time |
-        table_types[i,]==types$email |
-        table_types[i,]==types$url)/ncol(table_types)
+  sum(table_types[i,,drop=F]==types$id |
+        table_types[i,,drop=F]==types$numeric |
+        table_types[i,,drop=F]==types$date |
+        table_types[i,,drop=F]==types$time |
+        table_types[i,,drop=F]==types$email |
+        table_types[i,,drop=F]==types$url)/ncol(table_types)
 }
 
 count_function_votes = function(table_types){
@@ -112,7 +112,7 @@ add_hypothesis.row_function_hypotheses = function(hypotheses,confidence,row_func
 }
 
 detect = function(matrix,configuration){
-  if(class(matrix)[1]!="tbl_df") return(stop(paste("Can not handle data type:",class(matrix)[1])))
+  if(class(matrix)[1]!="data.frame") return(stop(paste("Can not handle data type:",class(matrix)[1])))
   
   #create row function votes
   n = nrow(matrix)
@@ -227,17 +227,17 @@ parse = function(matrix, hypothesis, errorHandler, configuration){
   spanning_header_index = which(row_functions==row_function_type$spanning_header)
   for(i in spanning_header_index){
     last = ""
-    for(j in seq_along(matrix[i,])){
-      if(matrix[i,j]!=""){
-        last = matrix[i,j]
+    for(j in seq_along(matrix[i,,drop=F])){
+      if(matrix[i,j,drop=F]!=""){
+        last = matrix[i,j,drop=F]
       }else{
         matrix[i,j] = last
         result$edits = result$edits + 1
       }
     }
   }
-  colnames(matrix) = apply(matrix[c(spanning_header_index,header_index),], 2, function(x){paste(x[x!=""], collapse=".")})
-  result$edits = result$edits + sum(apply(matrix[c(spanning_header_index,header_index),], 2, function(x){max(length(x[x!=""])-1,0)}))
+  colnames(matrix) = apply(matrix[c(spanning_header_index,header_index),,drop=F], 2, function(x){paste(x[x!=""], collapse=".")})
+  result$edits = result$edits + sum(apply(matrix[c(spanning_header_index,header_index),,drop=F], 2, function(x){max(length(x[x!=""])-1,0)}))
   
   #remove rows
   table = matrix
@@ -247,13 +247,13 @@ parse = function(matrix, hypothesis, errorHandler, configuration){
            row_functions==row_function_type$spanning_header)
   if(configuration$remove_aggregates){
     remove = c(remove, which(row_functions==row_function_type$aggregate))
-    result$metadata = unlist(apply(table[row_functions==row_function_type$aggregate,],1,function(x){paste(x[x!=""])}))
+    result$metadata = unlist(apply(table[row_functions==row_function_type$aggregate,,drop=F],1,function(x){paste(x[x!=""])}))
   }
-  result$metadata = c(result$metadata,unlist(apply(table[row_functions==row_function_type$metadata,],1,function(x){paste(x[x!=""])})))
+  result$metadata = c(result$metadata,unlist(apply(table[row_functions==row_function_type$metadata,,drop=F],1,function(x){paste(x[x!=""])})))
   if(length(remove)==nrow(table)){
     table = NULL
   }else if(length(remove)>0){
-    table = table[-remove,]
+    table = table[-remove,,drop=F]
   }
   
   result$intermediate = table

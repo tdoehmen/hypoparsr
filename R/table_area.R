@@ -2,8 +2,8 @@ get_data_density = function(matrix_types){
   density_ratings = matrix(nrow=nrow(matrix_types),ncol=ncol(matrix_types))
   for(i in 1:ncol(matrix_types)){
     for(j in 1:nrow(matrix_types)){
-      if(matrix_types[j,i]!=types$empty){
-        square = matrix_types[max((j-1),1):min((j+1),nrow(matrix_types)),max((i-1),1):min((i+1),ncol(matrix_types))]
+      if(matrix_types[j,i,drop=F]!=types$empty){
+        square = matrix_types[max((j-1),1):min((j+1),nrow(matrix_types)),max((i-1),1):min((i+1),ncol(matrix_types)),drop=F]
         density_ratings[j,i] = sum(square!=types$empty)
       }else{
         density_ratings[j,i] = 0
@@ -70,7 +70,7 @@ expand_areas_upper_left = function(leftover_density_ratings, dense_areas){
 }
 
 remove_empty_frame = function(table_area,matrix_types){
-  matrix_types_subset = matrix_types[table_area$row_start:table_area$row_end,table_area$col_start:table_area$col_end]
+  matrix_types_subset = matrix_types[table_area$row_start:table_area$row_end,table_area$col_start:table_area$col_end,drop=F]
   
   empty_rows = rle(apply(matrix_types_subset,1,function(x) all(x=="empty")))
   first_nonempty_row = ifelse(head(empty_rows$values,1)==T, head(empty_rows$lengths,1)+1, 1)
@@ -107,7 +107,7 @@ add_hypothesis.table_area_hypotheses = function(hypotheses,confidence,table_area
 }
 
 detect = function(matrix,configuration){
-  if(class(matrix)[1]!="tbl_df") return(stop(paste("Can not handle data type:",class(matrix)[1])))
+  if(class(matrix)[1]!="data.frame") return(stop(paste("Can not handle data type:",class(matrix)[1])))
   
   hypotheses = create_hypothesis_list("table_area")
 
@@ -143,7 +143,7 @@ parse = function(matrix, hypothesis, errorHandler, configuration){
   
   for(table_area in hypothesis$table_areas){
     result = list()
-    result$intermediate = matrix[table_area$row_start:table_area$row_end,table_area$col_start:table_area$col_end]
+    result$intermediate = matrix[table_area$row_start:table_area$row_end,table_area$col_start:table_area$col_end,drop=F]
     results[[length(results)+1]] = result
   }
   

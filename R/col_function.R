@@ -1,23 +1,23 @@
 col_function_type = list(spanning_header="spanning_header",spanning_data="spanning_data",aggregate="aggregate",metadata="metadata",empty="empty",empty_with_header="empty_with_header",data="data")
 
 is_spanning_header = function(i,table_types){
-  if(table_types[1,i]==types$empty ||
-     !all(which(table_types[,i]!=types$empty) %in% which(table_types[,min(i+1,ncol(table_types))]!=types$empty))){
+  if(table_types[1,i,drop=F]==types$empty ||
+     !all(which(table_types[,i,drop=F]!=types$empty) %in% which(table_types[,min(i+1,ncol(table_types)),drop=F]!=types$empty))){
     #|| any(diff(which(table_types[,i]!=types$empty))==1)
     return(F)
   }
   
-  sum(table_types[,i]==types$empty)/(nrow(table_types)) > mean(apply(table_types,2,function(x){sum(x==types$empty)/(nrow(table_types))}))
+  sum(table_types[,i,drop=F]==types$empty)/(nrow(table_types)) > mean(apply(table_types,2,function(x){sum(x==types$empty)/(nrow(table_types))}))
 }
 
 is_spanning_data = function(i,table_types,table){
-  if(table_types[1,i]==types$empty || !any(table_types[,i]==types$empty)){
+  if(table_types[1,i,drop=F]==types$empty || !any(table_types[,i,drop=F]==types$empty)){
     return(F)
   }
   
-  empty = sapply(2:nrow(table),function(j){table_types[j,i]==types$empty})
-  cell_equality = sapply(2:nrow(table),function(j){sum(table[j,]==table[j-1,],na.rm=T)})
-  cell_distance = sapply(2:nrow(table),function(j){sum(RecordLinkage::levenshteinDist(unlist(table[j,]),unlist(table[j-1,])),na.rm=T)})
+  empty = sapply(2:nrow(table),function(j){table_types[j,i,drop=F]==types$empty})
+  cell_equality = sapply(2:nrow(table),function(j){sum(table[j,,drop=F]==table[j-1,,drop=F],na.rm=T)})
+  cell_distance = sapply(2:nrow(table),function(j){sum(RecordLinkage::levenshteinDist(unlist(table[j,,drop=F]),unlist(table[j-1,,drop=F])),na.rm=T)})
 
   # duplications = data.frame(matrix(ncol=3,nrow=nrow(table)-1))
   # duplications[[1]] = empty
@@ -34,21 +34,21 @@ is_aggregate = function(i,table_types){
   }
   
   #all data fields should be numeric punct or empty
-  all(table_types[,i]==types$numeric || table_types[,i]==types$empty || table_types[,i]==types$punctuation)
+  all(table_types[,i,drop=F]==types$numeric || table_types[,i,drop=F]==types$empty || table_types[,i,drop=F]==types$punctuation)
 }
 
 is_metadata = function(i,table_types){
   (colnames(table_types)[i]==types$empty | colnames(table_types)[i]==types$punctuation) & 
     sum(colnames(table_types)==types$empty | colnames(table_types)==types$punctuation)/ncol(table_types)<0.5 & 
-    sum(table_types[,i]==types$empty | table_types[,i]==types$punctuation)/nrow(table_types)>0.8
+    sum(table_types[,i,drop=F]==types$empty | table_types[,i,drop=F]==types$punctuation)/nrow(table_types)>0.8
 }
 
 is_empty = function(i,table_types){
-  all(table_types[,i]==types$empty | table_types[,i]==types$punctuation) && colnames(table_types)[i]==types$empty
+  all(table_types[,i,drop=F]==types$empty | table_types[,i,drop=F]==types$punctuation) && colnames(table_types)[i,drop=F]==types$empty
 }
 
 is_empty_with_header = function(i,table_types){
-  all(table_types[,i]==types$empty | table_types[,i]==types$punctuation) && colnames(table_types)[i]!=types$empty
+  all(table_types[,i,drop=F]==types$empty | table_types[,i,drop=F]==types$punctuation) && colnames(table_types)[i,drop=F]!=types$empty
 }
 
 add_hypothesis.col_function_hypotheses = function(hypotheses,confidence,col_functions){
@@ -64,7 +64,7 @@ add_hypothesis.col_function_hypotheses = function(hypotheses,confidence,col_func
 }
 
 detect = function(table,configuration){
-  if(class(table)[1]!="tbl_df") return(stop(paste("Can not handle data type:",class(table)[1])))
+  if(class(table)[1]!="data.frame") return(stop(paste("Can not handle data type:",class(table)[1])))
   
   #create row function votes
   n = ncol(table)
@@ -134,9 +134,9 @@ parse = function(table, hypothesis, errorHandler, configuration){
     if(hypothesis$col_functions[i]==col_function_type$spanning_header && configuration$interpolate_spanning_column_header_cells ||
        (hypothesis$col_functions[i]==col_function_type$spanning_data && configuration$interpolate_spanning_column_data_cells)){
       last = ""
-      for(j in 1:nrow(table[,i])){
-        if(table[j,i]!=""){
-          last = table[j,i]
+      for(j in 1:nrow(table[,i,drop=F])){
+        if(table[j,i,drop=F]!=""){
+          last = table[j,i,drop=F]
         }else{
           table[j,i] = last
           result$edits = result$edits + 1
@@ -147,7 +147,7 @@ parse = function(table, hypothesis, errorHandler, configuration){
        hypothesis$col_functions[i]==col_function_type$metadata ||
        hypothesis$col_functions[i]==col_function_type$empty ||
        (hypothesis$col_functions[i]==col_function_type$empty_with_header && configuration$remove_named_empty_cols)){
-      result$metadata = c(result$metadata,unlist(apply(table[,remove],2,function(x){paste(x[x!=""])})))
+      result$metadata = c(result$metadata,unlist(apply(table[,remove,drop=F],2,function(x){paste(x[x!=""])})))
       remove = c(remove,i)
     }
   }
@@ -155,7 +155,7 @@ parse = function(table, hypothesis, errorHandler, configuration){
   if(length(remove)==ncol(table)){
     table = NULL
   }else if(length(remove)>0){
-    table = table[,-remove]
+    table = table[,-remove,drop=F]
   }
   
   result$intermediate = table
