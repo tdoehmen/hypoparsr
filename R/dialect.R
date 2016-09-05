@@ -1,7 +1,7 @@
 #potential varienties of line ending, quotes, seps and escaping methods (default is on first position)
 eols=c("\r\n","(?<!\r)\n","\r(?!\n)")
-delims=c(",", ";", "\\t", "\\\\|", "\\u060c", "\\u3001", ",", "\034", "\035", "\036", "\037")
-quotes=c("", "\\\"", "\\'", "`", "\\u00b4", "\\u2018", "\\u2019", "\\u201c", "\\u201d", "\\u2032", "\\u2033", "\\u00b4", "\\u02bc", "\\u02c8", "\\u02bb")
+delims=c(",", ";", "\t", "\\|", "\u060c", "\u3001", "\034", "\035", "\036", "\037")
+quotes=c("", "\"", "'", "`", "\u00b4", "\u2018", "\u2019", "\u201c", "\u201d", "\u2032", "\u2033", "\u00b4", "\u02bc", "\u02c8", "\u02bb")
 escape_char = "\\\\"
 
 detect = function(text,configuration){
@@ -20,6 +20,7 @@ detect = function(text,configuration){
             matching_quote_and_delim_1 = grepl(paste0(quote,"\\s*",delim),text)
             matching_quote_and_delim_2 = grepl(paste0(delim,"\\s*",quote),text)
             if(matching_quote && (matching_quote_and_delim_1 || matching_quote_and_delim_2)){
+              if(grepl("\\\\",delim)){ delim = gsub("\\\\","","\\|") }
               if(any(grepl(paste0(escape_char,quote),text))){
                 hypotheses = add_hypothesis(hypotheses,confidence=1,eol=eol,delim=delim,quote=quote,q_method="escape")
               }else{
@@ -29,6 +30,15 @@ detect = function(text,configuration){
           }
         }
       }
+    }
+  }
+  
+  if(length(hypotheses)>9){
+    for(i in 1:9){
+      hypotheses[[i]]$confidence = 0.1
+    }
+    for(i in 10:length(hypotheses)){
+      hypotheses[[i]]$confidence = 0.1/(length(hypotheses)-9)
     }
   }
   

@@ -1,97 +1,3 @@
-
-
-get_result_basic_features = function(result){
-  features = list(typed_cells=NA,empty_header=NA,metadata_fields=NA,edits=NA,confidence=NA)
-  #cells=NA,
-  table = result$table
-  
-  if(is.null(table)){
-    return(features)
-  } 
-  
-  if(nrow(table)==0){
-    return(features)
-  }
-  types=sapply(table,class)
-  
-  #measure table shape
-  #features$row_col_ratio = nrow(table)/ncol(table)
-  #features$cells = ncol(table)*nrow(table)
-  features$typed_cells = (ncol(table)-sum(types=="character"))*nrow(table)
-  features$empty_header = sum(as.character(colnames(table))=="")
-  features$metadata_fields = length(result$metadata)
-  features$edits = result$edits
-  features$confidence = sum(result$confidence,na.rm=T)
-  
-  #TODO: measure consistency of values
-  #TODO: measure does data fit to header?
-  #TODO: do header-elements co-occur in other tables?
-  
-  return(features)
-}
-
-# get_result_normal_features = function(result){
-#   features = list(typed_cells=NA,empty_header=NA,metadata_fields=NA,edits=NA,confidence=NA,non_latin_chars=NA)
-#   
-#   table = result$table
-#   
-#   if(is.null(table)){
-#     return(features)
-#   } 
-#   
-#   if(nrow(table)==0){
-#     return(features)
-#   }
-#   types=sapply(table,class)
-#   
-#   #measure table shape
-#   features$typed_cells = (ncol(table)-sum(types=="character"))*nrow(table)
-#   features$empty_header = sum(as.character(colnames(table))=="")
-#   features$metadata_fields = length(result$metadata)
-#   features$edits = result$edits
-#   features$confidence = sum(result$confidence,na.rm=T)
-#   features$non_latin_chars = str_count(iconv(paste(table,collapse=" "), "utf8", "latin1", sub="NONLATINCHARACTER"),"NONLATINCHARACTER")
-#   
-#   #TODO: measure consistency of values
-#   #TODO: measure does data fit to header?
-#   #TODO: do header-elements co-occur in other tables?
-#   
-#   return(features)
-# }
-
-get_result_extended_features = function(result){
-  features = list(row_col_ratio=NA,cells=NA,typed_cells=NA,empty_header=NA,numerics_header=NA,na_fields=NA,non_latin_chars=NA,metadata_fields=NA,edits=NA,confidence=NA)
-  
-  table = result$table
-  
-  if(is.null(table)){
-    return(features)
-  } 
-  
-  if(nrow(table)==0){
-    return(features)
-  }
-  types=sapply(table,class)
-  
-  #measure table shape
-  features$row_col_ratio = nrow(table)/ncol(table)
-  features$cells = ncol(table)*nrow(table)
-  features$typed_cells = (ncol(table)-sum(types=="character"))*nrow(table)
-  features$empty_header = sum(as.character(colnames(table))=="")
-  features$numerics_header = length(grep('[0-9]',colnames(table)))
-  features$na_fields = sum(colSums(is.na(table)))
-  features$non_latin_chars = stringr::str_count(iconv(paste(table,collapse=" "), "utf8", "latin1", sub="NONLATINCHARACTER"),"NONLATINCHARACTER")
-  features$metadata_fields = length(result$metadata)
-  features$edits = result$edits
-  features$confidence = sum(result$confidence,na.rm=T)
-  
-  #TODO: measure consistency of values
-  #TODO: measure does data fit to header?
-  #TODO: do header-elements co-occur in other tables?
-  
-  return(features)
-}
-
 get_result_features = function(result){
   features = list(warnings=NA,edits=NA,moves=NA,confidence=NA,total_cells=NA,typed_cells=NA,empty_header=NA,empty_cells=NA,non_latin_chars=NA,row_col_ratio=NA)
   
@@ -108,25 +14,17 @@ get_result_features = function(result){
   sum(apply(table,1,function(x){sum(unlist(x)=="" | is.na(unlist(x)))}))
   
   #measure table shape
-  #features$row_col_ratio = nrow(table)/ncol(table)
-  #features$cells = ncol(table)*nrow(table)
   features$warnings = length(result$warnings)
   features$edits = result$edits
   features$moves = result$moves
   features$confidence = sum(result$confidence,na.rm=T)
   features$total_cells = result$cells
-  features$typed_cells = ncol(table[,types!="character"])*nrow(table) - sum(apply(table[,types!="character"],1,function(x){sum(unlist(x)=="" | is.na(unlist(x)))}))
-  #features$non_titled_cells = ncol(table[,as.character(colnames(table))==""])*nrow(table) - sum(apply(table[,as.character(colnames(table))==""],1,function(x){sum(unlist(x)=="" | is.na(unlist(x)))}))
+  features$typed_cells = ncol(table[,types!="character",drop=F])*nrow(table) - sum(apply(table[,types!="character",drop=F],1,function(x){sum(unlist(x)=="" | is.na(unlist(x)))}))
   features$empty_header = sum(colnames(table)=="")
-  #features$named_cells = ncol(table[,as.character(colnames(table))==""])*nrow(table) - sum(apply(table[,as.character(colnames(table))==""],1,function(x){sum(unlist(x)=="" | is.na(unlist(x)))}))
-  #features$empty_header = sum(as.character(colnames(table))=="")
   features$empty_cells = sum(apply(table,1,function(x){sum(unlist(x)=="" | is.na(unlist(x)))}))
-  #features$numerics_in_header = length(grep('[0-9]',colnames(table)))
-  #features$metadata_fields = length(result$metadata)
   features$non_latin_chars = stringr::str_count(iconv(paste(table,collapse=" "), "utf8", "latin1", sub="NONLATINCHARACTER"),"NONLATINCHARACTER")
   features$row_col_ratio = as.integer(nrow(table)>ncol(table))
-  #features$metadata = length(result$metadata)
-  
+
   features = lapply(features,function(x){max(x,0)})
   
   return(features)

@@ -4,7 +4,7 @@ test_that("it parses our ugly collection", {
 	skip("This takes way too long")
 	dists <- parallel::mclapply(dir("tests/data/original", full.names=TRUE, recursive=TRUE), function(f) {
 		print(f)
-		clean_table = feather::read_feather(paste0("data/cleaned/",basename(f),".feather"))
+		clean_table = feather::read_feather(paste0("../data/cleaned/",basename(f),".feather"))
 
 		res <- hypoparsr::parse_file(f)
 		print(res)
