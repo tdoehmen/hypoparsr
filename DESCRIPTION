@@ -6,6 +6,6 @@ Maintainer: Hannes Muehleisen <hannes@cwi.nl>
 Description: A Multi-Hypothesis CSV Parser. Stresses your computer not you.
 License: MPL (== 2.0)
 URL: https://bitbucket.org/doehmen/open-information-integration-masters-thesis
-Imports: data.tree, stringr, RecordLinkage, dplyr, readr, tibble
+Imports: data.tree, RecordLinkage, readr, tibble
 Suggests: testthat
 Collate: misc.R encoding.R dialect.R table_area.R row_function.R col_function.R data_type.R quality_assessment.R parser_full.R

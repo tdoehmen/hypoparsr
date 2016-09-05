@@ -22,7 +22,7 @@ get_result_features = function(result){
   features$typed_cells = ncol(table[,types!="character",drop=F])*nrow(table) - sum(apply(table[,types!="character",drop=F],1,function(x){sum(unlist(x)=="" | is.na(unlist(x)))}))
   features$empty_header = sum(colnames(table)=="")
   features$empty_cells = sum(apply(table,1,function(x){sum(unlist(x)=="" | is.na(unlist(x)))}))
-  features$non_latin_chars = stringr::str_count(iconv(paste(table,collapse=" "), "utf8", "latin1", sub="NONLATINCHARACTER"),"NONLATINCHARACTER")
+  features$non_latin_chars = sum(gregexpr("NONLATINCHARACTER",iconv(paste(table,collapse=" "), "utf8", "latin1", sub="NONLATINCHARACTER"), fixed=T)[[1]] > 0)
   features$row_col_ratio = as.integer(nrow(table)>ncol(table))
 
   features = lapply(features,function(x){max(x,0)})
