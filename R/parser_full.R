@@ -147,22 +147,42 @@ generate_parsing_tree = function(file, configuration=list(traversal_order = "pre
 }
 
 # TODO: allow different parser configurations (full etc? here as a param)
-parse_file = function(file,pruning_level=0.1,quality_weights=c(warnings=-1,edits=-1,moves=-1,confidence=1,total_cells=1,typed_cells=1,empty_header=-1,empty_cells=-1,non_latin_chars=-1,row_col_ratio=1)){
-  results_and_tree = generate_parsing_tree(file,configuration=list(traversal_order = "pre-order", prunning_level=pruning_level, remove_aggregates=F, remove_named_empty_cols=F, interpolate_spanning_column_header_cells=T, interpolate_spanning_column_data_cells=F, conservative_type_casting=T, separate_multiple_units=T, only_one_table=T))
-  quality_ranking = rank_quality(results_and_tree$results, weights=-quality_weights)
-  res = list(file=file, results=results_and_tree$results, ranking=quality_ranking)
+parse_file = function(file,pruning_level=0.1,quality_weights=c(warnings=-1,edits=-1,moves=-1,confidence=1,total_cells=1,typed_cells=1,empty_header=-1,empty_cells=-1,non_latin_chars=-1,row_col_ratio=1)) {
+
+  res = tryCatch({ 
+    if (length(file) != 1 || !file.exists(file) || file.size(file) > 400000) {
+      stop("File '",file,"'' either does not exist or is larger than 400KB.")
+    }
+
+    results_and_tree = generate_parsing_tree(file,configuration=list(traversal_order = "pre-order", prunning_level=pruning_level, remove_aggregates=F, remove_named_empty_cols=F, interpolate_spanning_column_header_cells=T, interpolate_spanning_column_data_cells=F, conservative_type_casting=T, separate_multiple_units=T, only_one_table=T))
+  
+    quality_ranking = rank_quality(results_and_tree$results, weights=-quality_weights)
+
+    list(file=file, results=results_and_tree$results, ranking=quality_ranking)
+
+  },error=function(e){
+    list(file=file, error=e)
+  })
+
   class(res) = "hypoparser_result"
   return(res)
 }
 
 
 print.hypoparser_result = function(x, ...) {
-	print(paste0("Result of running hypoparsr on file '", x$file, "', generated ",length(x$results)," hypotheses, use as.data.frame() to get best parsing result."), ...)
+  if (is.null(x$error)) {
+	 print(paste0("Result of running hypoparsr on file '", x$file, "', generated ", length(x$results)," hypotheses, use as.data.frame() to get best parsing result."), ...)
+  } else {
+    print(paste0("Failed to run hypoparsr on file '", x$file, "', generated no hypotheses."), ...)
+  }
 	invisible(x)
 }
 
 as.data.frame.hypoparser_result = function(x, row.names, optional, rank=1, ...) {
-	stopifnot(length(rank) == 1 && rank > 0 && rank <= length(x$ranking))
+  if (!is.null(x$error) || length(rank) != 1 || rank < 1 || rank > length(x$ranking)) {
+    warning("Trying to get data.frame from failed parsing run or invalid rank.")
+    return(data.frame())
+  }
 	df=x$result[x$ranking][[rank]]$table
 	tibble::repair_names(df)
 }

@@ -5,7 +5,7 @@
    Multi-hypothesis parsing of CSV files.
 }
 \description{
-  parse_file creates different parsing hypothesis for a given CSV files and ranks them based on data quality features.
+  hypoparsr takes a different approach to CSV parsing by creating different parsing hypotheses for a given file and ranking them based on data quality features. \code{parse_file} creates and returns   the ranked parsing results.
 }
 \usage{
 parse_file(file, pruning_level = 0.1, quality_weights =
@@ -21,7 +21,7 @@ parse_file(file, pruning_level = 0.1, quality_weights =
  
  }
 \value{
-  A hypoparser_result, which contains all created hypotheses and their ranking. Call as.data.frame() on this object to retrieve the highest ranked parsing result.
+  A \code{hypoparsr_result}, which contains all created hypotheses and their ranking. Call \code{as.data.frame()} on this object to retrieve the highest ranked parsing result.
 }
 \examples{
 # generate a CSV
