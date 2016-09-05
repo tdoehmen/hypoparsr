@@ -2,21 +2,26 @@
 \alias{parse_file}
 
 \title{
-   TODO
+   Multi-hypothesis parsing of CSV files.
 }
 \description{
-  TODO
+  parse_file creates different parsing hypothesis for a given CSV files and ranks them based on data quality features.
 }
 \usage{
-parse_file(file, configuration) 
+parse_file(file, pruning_level = 0.1, quality_weights =
+                 c(warnings = -1, edits = -1, moves = -1, confidence = 1,
+                 total_cells = 1, typed_cells = 1, empty_header = -1,
+                 empty_cells = -1, non_latin_chars = -1, row_col_ratio =
+                 1)) 
 }
 \arguments{
-  \item{file}{TODO}
-  \item{configuration}{TODO}
-
-  }
+  \item{file}{Path to a CSV file.}
+  \item{pruning_level}{Numeric value between 0-1 which defined the lower threshold for confidence values of parsing hypotheses. The higher the value, the less hypotheses are created and the correct hypothesis might be omitted.}
+  \item{quality_weights}{A named list of numeric quality feature weights which influence the hypothesis ranking. Positive weights improve the ranking of results with the respective characteristic and negative weights penalize the same.}
+ 
+ }
 \value{
-  TODO
+  A hypoparser_result, which contains all created hypotheses and their ranking. Call as.data.frame() on this object to retrieve the highest ranked parsing result.
 }
 \examples{
 # generate a CSV

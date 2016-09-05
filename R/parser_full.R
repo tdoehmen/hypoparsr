@@ -147,9 +147,9 @@ generate_parsing_tree = function(file, configuration=list(traversal_order = "pre
 }
 
 # TODO: allow different parser configurations (full etc? here as a param)
-parse_file = function(file,pruning_level=0.1,quality_weights=c(warnings=1,edits=1,moves=1,confidence=-1,total_cells=-1,typed_cells=-1,empty_header=1,empty_cells=1,non_latin_chars=1,row_col_ratio=-1)){
+parse_file = function(file,pruning_level=0.1,quality_weights=c(warnings=-1,edits=-1,moves=-1,confidence=1,total_cells=1,typed_cells=1,empty_header=-1,empty_cells=-1,non_latin_chars=-1,row_col_ratio=1)){
   results_and_tree = generate_parsing_tree(file,configuration=list(traversal_order = "pre-order", prunning_level=pruning_level, remove_aggregates=F, remove_named_empty_cols=F, interpolate_spanning_column_header_cells=T, interpolate_spanning_column_data_cells=F, conservative_type_casting=T, separate_multiple_units=T, only_one_table=T))
-  quality_ranking = rank_quality(results_and_tree$results, weights=quality_weights)
+  quality_ranking = rank_quality(results_and_tree$results, weights=-quality_weights)
   res = list(file=file, results=results_and_tree$results, ranking=quality_ranking)
   class(res) = "hypoparser_result"
   return(res)
