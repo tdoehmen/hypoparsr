@@ -38,3 +38,7 @@ print(res)
 best_guess <- as.data.frame(res)
 second_best_guess <- as.data.frame(res, rank=2)
 ```
+
+## Demo
+
+![Demo](https://cloud.githubusercontent.com/assets/4321121/18354984/f589ce94-75e7-11e6-938e-f1fb561a67ec.gif)
