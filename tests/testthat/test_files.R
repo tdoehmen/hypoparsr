@@ -1,4 +1,5 @@
 library(testthat)
+library(feather)
 
 test_that("it parses our ugly collection", {
 	skip("This takes way too long")
